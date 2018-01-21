@@ -332,13 +332,12 @@ for i, name in names.iteritems():
     s = re.sub('C4H10', 'CCCC', s)
 
     # for saturated hydrocarbons
-    if r'C\dH\d' == True:
-        for i in range(1,10):  # i is an integer
-            j = str(2*i+2)  # change into strings
+    if r'C':
+        for i in range(1,10):
+            j = str(2*i+2)
             k = str(i)
-            pattern = r'^C' + re.escape(k) + r'H' + re.escape(j)
-            if pattern == True:
-                s = re.sub(pattern, 'C' * i, s)
+            if r'C' + re.escape(k) + r'H' + re.escape(j):
+                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C' * i, s)
             else:
                 continue
 
