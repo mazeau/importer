@@ -1,4 +1,7 @@
+# Import regular expressions
 import re
+from rdkit import Chem
+
 
 inputfile = """C
 AR 
@@ -284,17 +287,21 @@ C6H11O4-D1HP6P5
 C6H12-d1     
 """
 
-inputfile.split()
-name = inputfile.split()
-name = [x for x in name if "!" not in x]  # gets rid of entries with !
-name = [x for x in name if "pecies" not in x]  # gets rid of the word species
-#print name
-#len(name)
 
-raw_smiles = name
+# split my input file into a list and get rid of unwanted entries
+inputfile.split()
+names = inputfile.split()
+names = [x for x in names if "!" not in x]  # gets rid of entries containing an !
+names = [x for x in names if "pecies" not in x]  # gets rid of entries containing the word species
+# Names is my list full of names
+
+# Now I want to create a dictionary so I can use strings instead of lists
+names = dict(zip(names, names))
+# x is my string that iterates through the dictionary
+
 smiles = {}
-for n in range(0, len(name)):
-    s = raw_smiles[n]
+for i, name in names.iteritems():
+    s = name
     s = re.sub('A1-', '[C]1CCCCC1', s)
     s = re.sub('A1', 'C1CCCCC1', s)
     s = re.sub('AR', 'Ar', s)
@@ -321,20 +328,30 @@ for n in range(0, len(name)):
     s = re.sub('CHOH', '[CH]O', s)
     s = re.sub('HO2', '[O]O', s)
 
-    s = re.sub('C2H6', 'CC', s)
-    s = re.sub('C3H8', 'CCC', s)
     s = re.sub('-C4H10', 'CC(C)C', s)
     s = re.sub('C4H10', 'CCCC', s)
 
-    # for x in range(1, 10):  # saturated hydrocarbons
-    #    pattern = r'^C' + re.escape(x) + r'H' + re.escape(2*x+2)
-    #    s = re.sub(pattern, 'C' * x, s)
-    smiles[n] = s
+    # for saturated hydrocarbons
+    if r'C\dH\d' == True:
+        for i in range(1,10):  # i is an integer
+            j = str(2*i+2)  # change into strings
+            k = str(i)
+            pattern = r'^C' + re.escape(k) + r'H' + re.escape(j)
+            if pattern == True:
+                s = re.sub(pattern, 'C' * i, s)
+            else:
+                continue
 
-a = smiles
-a.items()
-new_smiles = [(v, k) for (k, v) in a.iteritems()]
-new_smiles = zip(*new_smiles)[0]
-names = zip(name, new_smiles)
-for line in names:
-    print line
+    smiles[name] = s  # building my dictionary
+
+smiless = {}
+for name, smiles in smiles.iteritems():
+    try:
+        molecule = Chem.MolFromSmiles(smiles) # turn it into an rdkit molecule
+        smiles = Chem.MolToSmiles(molecule,True) # turn it back into a (canonical) smiles
+    except:
+        print "couldn't convert ", name, structures[name], smiles
+    smiless[name] = smiles
+
+#for line in names:
+#    print line

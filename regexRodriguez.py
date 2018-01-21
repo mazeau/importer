@@ -1,5 +1,6 @@
 import re
 from rdkit import Chem
+
 inputfile ="""
 ! Radicals from the base
 R1H   !   .h
@@ -282,6 +283,9 @@ for line in inputfile.splitlines():
         continue
     name, structure = (s.strip() for s in line.split('!'))
     structures[name]=structure
+#  structure is a string... the last right column entry in my dictionary
+#  structures is a dictionary
+#  name is a string... the last name entry in my dictionary
 
 raw_smiles = {}
 for name, structure in structures.iteritems():
@@ -316,6 +320,8 @@ for name, structure in structures.iteritems():
     s = re.sub('(\([^)]+\))(\d+)', expander, s)
 
     raw_smiles[name] = s
+#  raw_smiles is a dictionary
+#  s is a string... my converted smiles
 
 smiless = {}
 for name, smiles in raw_smiles.iteritems():
@@ -327,6 +333,6 @@ for name, smiles in raw_smiles.iteritems():
     smiless[name] = smiles
     #print name, smiles
 
-for name in sorted(smiless.keys()):
-    smiles = smiless[name]
-    print "{}\t{}\t! Confirmed by translating name automatically".format(name,smiles)
+#for name in sorted(smiless.keys()):
+#    smiles = smiless[name]
+#    print "{}\t{}\t! Confirmed by translating name automatically".format(name,smiles)
