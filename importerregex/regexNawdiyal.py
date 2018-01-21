@@ -1,6 +1,7 @@
 # Import regular expressions
 import re
-import string
+from rdkit import Chem
+
 
 inputfile = """C
 AR 
@@ -327,8 +328,6 @@ for i, name in names.iteritems():
     s = re.sub('CHOH', '[CH]O', s)
     s = re.sub('HO2', '[O]O', s)
 
-    s = re.sub('C2H6', 'CC', s)
-    s = re.sub('C3H8', 'CCC', s)
     s = re.sub('-C4H10', 'CC(C)C', s)
     s = re.sub('C4H10', 'CCCC', s)
 
@@ -345,10 +344,14 @@ for i, name in names.iteritems():
 
     smiles[name] = s  # building my dictionary
 
-a = smiles
-a.items()
-new_smiles = [(v, k) for (k, v) in a.iteritems()]
-new_smiles = zip(*new_smiles)[0]
-names = zip(name, new_smiles)
+smiless = {}
+for name, smiles in smiles.iteritems():
+    try:
+        molecule = Chem.MolFromSmiles(smiles) # turn it into an rdkit molecule
+        smiles = Chem.MolToSmiles(molecule,True) # turn it back into a (canonical) smiles
+    except:
+        print "couldn't convert ", name, structures[name], smiles
+    smiless[name] = smiles
+
 #for line in names:
 #    print line
