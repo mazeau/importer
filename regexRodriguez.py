@@ -333,6 +333,6 @@ for name, smiles in raw_smiles.iteritems():
     smiless[name] = smiles
     #print name, smiles
 
-#for name in sorted(smiless.keys()):
-#    smiles = smiless[name]
-#    print "{}\t{}\t! Confirmed by translating name automatically".format(name,smiles)
+for name in sorted(smiless.keys()):
+    smiles = smiless[name]
+    print "{}\t{}\t! Confirmed by translating name automatically".format(name,smiles)

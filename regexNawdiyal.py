@@ -299,14 +299,13 @@ names = [x for x in names if "pecies" not in x]  # gets rid of entries containin
 names = dict(zip(names, names))
 # x is my string that iterates through the dictionary
 
-smiles = {}
+raw_smiles = {}
 for i, name in names.iteritems():
     s = name
     s = re.sub('A1-', '[C]1CCCCC1', s)
     s = re.sub('A1', 'C1CCCCC1', s)
     s = re.sub('AR', 'Ar', s)
     s = re.sub('CH3', '[CH3]', s)
-    s = re.sub('CH4', 'C', s)
     s = re.sub('C2H ', '[C]#C', s)
     s = re.sub('CH2', '[CH2]', s)
     s = re.sub('CO2', 'O=C=O', s)
@@ -327,9 +326,7 @@ for i, name in names.iteritems():
     s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
     s = re.sub('CHOH', '[CH]O', s)
     s = re.sub('HO2', '[O]O', s)
-
     s = re.sub('-C4H10', 'CC(C)C', s)
-    s = re.sub('C4H10', 'CCCC', s)
 
     # for saturated hydrocarbons
     if r'C':
@@ -341,16 +338,19 @@ for i, name in names.iteritems():
             else:
                 continue
 
-    smiles[name] = s  # building my dictionary
+    #
+
+    raw_smiles[name] = s  # building my dictionary
 
 smiless = {}
-for name, smiles in smiles.iteritems():
+for name, smiles in raw_smiles.iteritems():
     try:
-        molecule = Chem.MolFromSmiles(smiles) # turn it into an rdkit molecule
-        smiles = Chem.MolToSmiles(molecule,True) # turn it back into a (canonical) smiles
+        molecule = Chem.MolFromSmiles(smiles)  # turn it into an rdkit molecule
+        smiles = Chem.MolToSmiles(molecule, True)  # turn it back into a (canonical) smiles
     except:
-        print "couldn't convert ", name, structures[name], smiles
+        print "couldn't convert ", name
     smiless[name] = smiles
 
-#for line in names:
-#    print line
+for name in sorted(smiless.keys()):
+    smiles = smiless[name]
+    print "{}\t{}\t! Autoconfirm".format(name, smiles)
