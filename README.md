@@ -1,8 +1,5 @@
 # importer
 regular expressions for the importer project
 
-regexAramcoMech_1.3 is not finished
+check importerregex folder for my commits
 
-Rodriguez is the same as the example file
-
-check importerregex for newer commits 
