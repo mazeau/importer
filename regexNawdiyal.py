@@ -306,7 +306,7 @@ for x, name in names.iteritems():
     s = re.sub('A1', 'C1CCCCC1', s)
     s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
     s = re.sub('AR', 'Ar', s)
-    s = re.sub('CH3', 'C', s)
+#    s = re.sub('CH3', 'C', s)
     s = re.sub('C2H ', '[C]#C', s)
     s = re.sub('CH2', '[CH2]', s)
     s = re.sub('CO2', 'O=C=O', s)
@@ -366,15 +366,20 @@ for x, name in names.iteritems():
 
     raw_smiles[name] = s  # building my dictionary
 
-smiless = {}
+good_smiles = {}
+bad_smiles = {}
 for name, smiles in raw_smiles.iteritems():
     try:
         molecule = Chem.MolFromSmiles(smiles)  # turn it into an rdkit molecule
         smiles = Chem.MolToSmiles(molecule, True)  # turn it back into a (canonical) smiles
+        good_smiles[name] = smiles
     except:
-        print "couldn't convert ", name
-    smiless[name] = smiles
+        bad_smiles[name] = smiles
 
-for name in sorted(smiless.keys()):
-    smiles = smiless[name]
-    print "{}\t{}\t! Autoconfirm".format(name, smiles)  # autoconfirms all even though some weren't sucessfully tanslated
+for name in sorted(good_smiles.keys()):  # print sucesses
+    smiles = good_smiles[name]
+    print "{}\t{}\t! Autoconfirm".format(name, smiles)
+for name in sorted(bad_smiles.keys()):  # print failures
+    smiles = bad_smiles[name]
+    print "{}\t{}\t! Not Converted".format(name, smiles)
+print "{}\t! sucesses out of {}\n{}% success rate".format(len(good_smiles), len(names), round(float(len(good_smiles))/len(names) * 100,3))
