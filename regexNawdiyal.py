@@ -284,7 +284,7 @@ C6H11O4-D1HP5P6
 C6H11O4-D1HP6P3
 C6H11O4-D1HP6P4
 C6H11O4-D1HP6P5
-C6H12-d1     
+C6H12-d1
 """
 
 
@@ -300,45 +300,69 @@ names = dict(zip(names, names))
 # x is my string that iterates through the dictionary
 
 raw_smiles = {}
-for i, name in names.iteritems():
+for x, name in names.iteritems():
     s = name
     s = re.sub('A1-', '[C]1CCCCC1', s)
     s = re.sub('A1', 'C1CCCCC1', s)
+    s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
     s = re.sub('AR', 'Ar', s)
-    s = re.sub('CH3', '[CH3]', s)
+    s = re.sub('CH3', 'C', s)
     s = re.sub('C2H ', '[C]#C', s)
     s = re.sub('CH2', '[CH2]', s)
     s = re.sub('CO2', 'O=C=O', s)
-    s = re.sub('OH', 'O', s)
+#    s = re.sub('OH', 'O', s)
     s = re.sub('O1 ', 'O', s)
     s = re.sub('O2H', 'OO', s)
     s = re.sub('O2 ', '[O][O]', s)
     s = re.sub('O2', 'O[O]', s)
-    s = re.sub('CHO ', 'C=O', s)
+    s = re.sub('CHO ', 'C=[O]', s)
+    s = re.sub('CHOH ', 'C=O', s)
     s = re.sub('CO', 'O=[C]', s)
-    s = re.sub('CH2', '[CH2]', s)
     s = re.sub('COCH2', '(=O)CC', s)
     s = re.sub('COCH3 ', 'CC(C)=O', s)
     s = re.sub('C2H2', 'C#C', s)
     s = re.sub('C2H3', '[CH]=C', s)
-    s = re.sub('C2H4', 'C=C', s)
     s = re.sub('C2H5', 'C[CH2]', s)
-    s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
     s = re.sub('CHOH', '[CH]O', s)
     s = re.sub('HO2', '[O]O', s)
     s = re.sub('-C4H10', 'CC(C)C', s)
 
     # for saturated hydrocarbons
-    if r'C':
-        for i in range(1,10):
-            j = str(2*i+2)
-            k = str(i)
+    if r'C\dH\d':
+        for a in range(1, 10):
+            j = str(2*a+2)
+            k = str(a)
             if r'C' + re.escape(k) + r'H' + re.escape(j):
-                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C' * i, s)
+                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C' * a, s)
             else:
                 continue
 
-    #
+    # for Cs with only 4 Hs
+    if r'C\dH\d':
+        for a in range(2, 10):
+            k = str(a)
+            if r'C' + re.escape(k) + r'H4\n':
+                s = re.sub(r'C' + re.escape(k) + r'H4', 'C' + '=C' * (a-1), s)
+            else:
+                continue
+
+    # for only one double bond
+    if r'C\dH\d':
+        for a in range(2, 10):
+            j = str(2*a)
+            k = str(a)
+            if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1':
+                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1', 'C=C' + 'C' * (a-2), s)
+            else:
+                continue
+            if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2':
+                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2', 'CC=' + 'C' * (a-2), s)
+            else:
+                continue
+            if r'C' + re.escape(k) + r'H' + re.escape(j):  # todo: make it not match C3H6CHO-1 and others
+                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C=C' + 'C' * (a-2), s)
+            else:
+                continue
 
     raw_smiles[name] = s  # building my dictionary
 
@@ -353,4 +377,4 @@ for name, smiles in raw_smiles.iteritems():
 
 for name in sorted(smiless.keys()):
     smiles = smiless[name]
-    print "{}\t{}\t! Autoconfirm".format(name, smiles)
+    print "{}\t{}\t! Autoconfirm".format(name, smiles)  # autoconfirms all even though some weren't sucessfully tanslated
