@@ -305,27 +305,39 @@ for x, name in names.iteritems():
     s = re.sub('A1-', '[C]1CCCCC1', s)
     s = re.sub('A1', 'C1CCCCC1', s)
     s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
-    s = re.sub('AR', 'Ar', s)
-#    s = re.sub('CH3', 'C', s)
-    s = re.sub('C2H ', '[C]#C', s)
-    s = re.sub('CH2', '[CH2]', s)
+    s = re.sub('AR', '[Ar]', s)
+
+    if x.endswith("CH2"):
+        s = re.sub('CH2', '[CH2]', s)
+    else:
+        s = re.sub('CH2', 'C', s)
+    if r'.CH3$':
+        s = re.sub('CH3', 'C', s)
+
+    # for the remaining
     s = re.sub('CO2', 'O=C=O', s)
-#    s = re.sub('OH', 'O', s)
+    #    s = re.sub('OH', 'O', s)
     s = re.sub('O1 ', 'O', s)
-    s = re.sub('O2H', 'OO', s)
-    s = re.sub('O2 ', '[O][O]', s)
-    s = re.sub('O2', 'O[O]', s)
-    s = re.sub('CHO ', 'C=[O]', s)
+    #    s = re.sub('O2$', '[O][O]', s)
     s = re.sub('CHOH ', 'C=O', s)
-    s = re.sub('CO', 'O=[C]', s)
-    s = re.sub('COCH2', '(=O)CC', s)
+    s = re.sub('CHO', 'C=[O]', s)
     s = re.sub('COCH3 ', 'CC(C)=O', s)
     s = re.sub('C2H2', 'C#C', s)
     s = re.sub('C2H3', '[CH]=C', s)
-    s = re.sub('C2H5', 'C[CH2]', s)
     s = re.sub('CHOH', '[CH]O', s)
     s = re.sub('HO2', '[O]O', s)
     s = re.sub('-C4H10', 'CC(C)C', s)
+
+    if r'COH':
+        s = re.sub('COH', 'CO', s)
+    elif x.endswith("CO"):
+        s = re.sub('CO', '[C]=O', s)
+    else:
+        s = re.sub('CO', '(C)=O', s)
+
+    s = re.sub('O2H', 'OO', s)
+    s = re.sub('O2', 'O[O]', s)
+    s = re.sub('OH', 'O', s)
 
     # for saturated hydrocarbons
     if r'C\dH\d':
@@ -353,16 +365,19 @@ for x, name in names.iteritems():
             k = str(a)
             if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1':
                 s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1', 'C=C' + 'C' * (a-2), s)
-            else:
-                continue
             if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2':
                 s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2', 'CC=' + 'C' * (a-2), s)
-            else:
-                continue
             if r'C' + re.escape(k) + r'H' + re.escape(j):  # todo: make it not match C3H6CHO-1 and others
                 s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C=C' + 'C' * (a-2), s)
-            else:
-                continue
+
+    # C2H5 species
+    s = re.sub('C2H5$', 'C[CH2]', s)
+    if r'C2H5':
+        s = re.sub('C2H5', 'CC', s)
+        s = re.sub('COCH2', '(=O)C[CH2]', s)
+        s = re.sub('CO', 'C(=O)', s)
+
+    s = re.sub('C2H', 'C#C', s)
 
     raw_smiles[name] = s  # building my dictionary
 
@@ -382,4 +397,4 @@ for name in sorted(good_smiles.keys()):  # print sucesses
 for name in sorted(bad_smiles.keys()):  # print failures
     smiles = bad_smiles[name]
     print "{}\t{}\t! Not Converted".format(name, smiles)
-print "{}\t! sucesses out of {}\n{}% success rate".format(len(good_smiles), len(names), round(float(len(good_smiles))/len(names) * 100,3))
+print "{}\tsucesses out of {}\n{}% success rate".format(len(good_smiles), len(names), round(float(len(good_smiles))/len(names) * 100, 3))
