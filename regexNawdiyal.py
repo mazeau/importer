@@ -288,98 +288,125 @@ C6H12-d1
 """
 
 
-# split my input file into a list and get rid of unwanted entries
+# split my input file into a list and get rid of unwanted entries using list comprehension
 inputfile.split()
 names = inputfile.split()
 names = [x for x in names if "!" not in x]  # gets rid of entries containing an !
 names = [x for x in names if "pecies" not in x]  # gets rid of entries containing the word species
-# Names is my list full of names
+inames = map(lambda f: '!' + f + '!', names)  # add ! at the start and end of every entry
 
 # Now I want to create a dictionary so I can use strings instead of lists
-names = dict(zip(names, names))
+names = dict(zip(names, inames))
 # x is my string that iterates through the dictionary
 
 raw_smiles = {}
-for x, name in names.iteritems():
-    s = name
-    s = re.sub('A1-', '[C]1CCCCC1', s)
-    s = re.sub('A1', 'C1CCCCC1', s)
-    s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
-    s = re.sub('AR', '[Ar]', s)
+for name, iname in names.iteritems():
+    s = iname
+    s = re.sub('!A1-!', '[C]1CCCCC1', s)
+    if r'A1':
+        s = re.sub('!A1!', 'C1CCCCC1', s)
+        s = re.sub('!A1', 'C1CCCCC1', s)
+        s = re.sub('A1!', 'C1CCCCC1', s)
+        s = re.sub('A1', 'C1CCCCC1', s)
+    if r'A2':
+        s = re.sub('!A2!', 'C1CCC2CCCCC2C1', s)
+        s = re.sub('!A2', 'C1CCC2CCCCC2C1', s)
+        s = re.sub('A2!', 'C1CCC2CCCCC2C1', s)
+        s = re.sub('A2', 'C1CCC2CCCCC2C1', s)
 
-    if x.endswith("CH2"):
-        s = re.sub('CH2', '[CH2]', s)
-    else:
-        s = re.sub('CH2', 'C', s)
-    if r'.CH3$':
-        s = re.sub('CH3', 'C', s)
+    if r'CH2':
+        if r'!CH2OH!':
+            s = re.sub('!CH2OH!', '[CH2]O', s)
+        if r'CH2OH':
+            s = re.sub('CH2OH!', 'CO', s)
+            s = re.sub('!CH2OH', 'OC', s)
+            s = re.sub('CH2OH', 'CO', s)
+        if r'!CH2O!':
+            s = re.sub('!CH2O!', 'C=O', s)
+        if not r'CH2!' and not r'!CH2':
+            s = re.sub('CH2', 'C', s)
+        if r'CH2!' or r'!CH2':
+            s = re.sub('!CH2', '[CH2]', s)
+            s = re.sub('CH2!', '[CH2]', s)
+    if r'CH3!':
+        s = re.sub('CH3!', 'C', s)
+    if r'CHO!' or r'!CHO':
+        s = re.sub('CHO!', 'C=O', s)
+        s = re.sub('!CHO', 'O=C', s)
 
-    # for the remaining
-    s = re.sub('CO2', 'O=C=O', s)
-    #    s = re.sub('OH', 'O', s)
-    s = re.sub('O1 ', 'O', s)
-    #    s = re.sub('O2$', '[O][O]', s)
-    s = re.sub('CHOH ', 'C=O', s)
-    s = re.sub('CHO', 'C=[O]', s)
-    s = re.sub('COCH3 ', 'CC(C)=O', s)
-    s = re.sub('C2H2', 'C#C', s)
-    s = re.sub('C2H3', '[CH]=C', s)
-    s = re.sub('CHOH', '[CH]O', s)
-    s = re.sub('HO2', '[O]O', s)
-    s = re.sub('-C4H10', 'CC(C)C', s)
+    s = re.sub('COCH3!', 'C(C)=O', s)
+    s = re.sub('!C2H2!', 'C#C', s)
 
-    if r'COH':
-        s = re.sub('COH', 'CO', s)
-    elif x.endswith("CO"):
-        s = re.sub('CO', '[C]=O', s)
-    else:
-        s = re.sub('CO', '(C)=O', s)
+    s = re.sub('CHOH!', '[CH]O', s)
+    s = re.sub('!-C4H10!', 'CC(C)C', s)
 
-    s = re.sub('O2H', 'OO', s)
-    s = re.sub('O2', 'O[O]', s)
-    s = re.sub('OH', 'O', s)
+    if r'!OH' or r'OH!':
+        s = re.sub('!OH', 'O', s)
+        s = re.sub('OH!', 'O', s)
+    if r'O2H!' or r'!O2H':
+        s = re.sub('O2H!', 'OO', s)
+        s = re.sub('!O2H', 'OO', s)
+
 
     # for saturated hydrocarbons
-    if r'C\dH\d':
+    if r'!C\dH\d!':
         for a in range(1, 10):
             j = str(2*a+2)
             k = str(a)
-            if r'C' + re.escape(k) + r'H' + re.escape(j):
-                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C' * a, s)
-            else:
-                continue
+            if r'!C' + re.escape(k) + r'H' + re.escape(j) + r'!':
+                s = re.sub(r'!C' + re.escape(k) + r'H' + re.escape(j) + r'!', 'C' * a, s)
 
     # for Cs with only 4 Hs
-    if r'C\dH\d':
+    if r'!C\dH\d!':
         for a in range(2, 10):
             k = str(a)
-            if r'C' + re.escape(k) + r'H4\n':
-                s = re.sub(r'C' + re.escape(k) + r'H4', 'C' + '=C' * (a-1), s)
-            else:
-                continue
+            if r'!C' + re.escape(k) + r'H4\n!':
+                s = re.sub(r'!C' + re.escape(k) + r'H4!', 'C' + '=C' * (a-1), s)
 
     # for only one double bond
-    if r'C\dH\d':
+    if r'!C\dH\d!':
         for a in range(2, 10):
             j = str(2*a)
             k = str(a)
-            if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1':
-                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-1', 'C=C' + 'C' * (a-2), s)
-            if r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2':
-                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j) + r'-2', 'CC=' + 'C' * (a-2), s)
-            if r'C' + re.escape(k) + r'H' + re.escape(j):  # todo: make it not match C3H6CHO-1 and others
-                s = re.sub(r'C' + re.escape(k) + r'H' + re.escape(j), 'C=C' + 'C' * (a-2), s)
+            if r'!C' + re.escape(k) + r'H' + re.escape(j) + r'-1!':
+                s = re.sub(r'!C' + re.escape(k) + r'H' + re.escape(j) + r'-1!', 'C=C' + 'C' * (a-2), s)
+            if r'!C' + re.escape(k) + r'H' + re.escape(j) + r'-2!':
+                s = re.sub(r'!C' + re.escape(k) + r'H' + re.escape(j) + r'-2!', 'CC=' + 'C' * (a-2), s)
+            if r'C' + re.escape(k) + r'H' + re.escape(j):
+                s = re.sub(r'!C' + re.escape(k) + r'H' + re.escape(j) + r'!', 'C=C' + 'C' * (a-2), s)
 
     # C2H5 species
-    s = re.sub('C2H5$', 'C[CH2]', s)
+    s = re.sub('C2H5!', 'C[CH2]', s)
     if r'C2H5':
         s = re.sub('C2H5', 'CC', s)
         s = re.sub('COCH2', '(=O)C[CH2]', s)
         s = re.sub('CO', 'C(=O)', s)
 
-    s = re.sub('C2H', 'C#C', s)
+    if r'C2H':
+        if r'!C2H!':
+            s = re.sub('!C2H!', '[C]#C', s)
+        if r'C2H!':
+            s = re.sub('C2H!', 'C#C', s)
+
+
+    s = re.sub('!AR!', '[Ar]', s)
+    s = re.sub('!C!', '[C]', s)
+    s = re.sub('!CH2!', '[CH2]', s)
+    s = re.sub('!CH3!', '[CH3]', s)
+    s = re.sub('!CO!', 'CO', s)
+    s = re.sub('!CO2!', '[O=C=O]', s)
+    s = re.sub('!C2H3!', '[CH]=C', s)
+    s = re.sub('!HO2!', '[O]O', s)
+    s = re.sub('!O!', '[O]', s)
+    s = re.sub('!OH!', '[OH]', s)
+    s = re.sub('!O2!', '[O][O]', s)
+    s = re.sub('!C2O!', '[C]#C[O]', s)
+
+    if r'!':
+        s = re.sub('!', '', s)  # get rid of all !s and keep them separate bc they didn't finish
 
     raw_smiles[name] = s  # building my dictionary
+
 
 good_smiles = {}
 bad_smiles = {}
